@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trung Thu</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #000010;
+  }
+
+  #rotateOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    z-index: 10000;
+    text-align: center;
+    padding: 20px;
+  }
+
+  #startBtn {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    padding: 15px 35px;
+    background: #ffd966;
+    color: #222;
+    font-size: 26px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 0 20px #ffdd77;
+  }
+
+  .moon {
+    position: absolute;
+    top: 40px;
+    right: 80px;
+    width: 200px;
+    height: 200px;
+    background: url("moon.png") no-repeat center/cover;
+    border-radius: 50%;
+    z-index: 1;
+    box-shadow: 0 0 60px rgba(255,223,120,0.8);
+  }
+
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.8;
+    animation: twinkle 2s infinite alternate;
+  }
+  @keyframes twinkle {
+    from {opacity: 0.2;}
+    to {opacity: 1;}
+  }
+
+  .lantern {
+    position: absolute;
+    width: 120px;
+    height: 160px;
+    background: url("lantern.png") no-repeat center/contain;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+    filter: brightness(1.8);
+    transform: scale(1);
+  }
+
+  .message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background: rgba(0,0,0,0.6);
+    padding: 20px 30px;
+    border-radius: 20px;
+    font-size: 20px;
+    color: #ffd966;
+    display: none;
+    z-index: 9999;
+    max-width: 80%;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 0 15px #ffd966;
+  }
+</style>
+</head>
+<body>
+  <div id="rotateOverlay">📱 Vui lòng xoay ngang điện thoại để trải nghiệm đêm Trung Thu nhaa<3 </div>
+  <div id="startBtn">Trải nghiệm </div>
+  <div class="moon"></div>
+  <div id="stars"></div>
+  <div id="lanterns"></div>
+  <div id="message" class="message"></div>
+
+  <audio id="bgm">
+    <source src="music.mp3" type="audio/mpeg">
+  </audio>
+
+<script>
+const rotateOverlay = document.getElementById("rotateOverlay");
+const startBtn = document.getElementById("startBtn");
+const bgm = document.getElementById("bgm");
+const lanternsContainer = document.getElementById("lanterns");
+const messageBox = document.getElementById("message");
+
+const wishes = [
+  "Chúc bạn Trần Bình có một đêm trung thu thật an yên, ngắm trăng sáng và thấy lòng mình nhẹ nhàng.",
+  "Mong rằng trung thu này mang đến cho bạn Trần Bình những niềm vui nhỏ bé nhưng trọn vẹn.",
+  "Trung thu là dịp sum vầy, chúc bạn Trần Bình luôn được ở bên những người thương yêu.",
+  "Chúc bạn Trần Bình có những ước mơ thật đẹp dưới ánh trăng rằm đêm nay.",
+  "Trung thu không chỉ có bánh, có đèn, mà còn có những khoảnh khắc ấm áp – chúc bạn Trần Bình giữ mãi điều đó.",
+  "Chúc bạn Trần Bình luôn cười thật tươi, để ánh trăng đêm nay cũng phải ghen tị.",
+  "Mong bạn Trần Bình nhận được nhiều sự quan tâm chân thành, không chỉ trong trung thu này mà cả năm dài.",
+  "Chúc bạn Trần Bình có một trung thu đầy kỷ niệm đẹp, để sau này nhớ lại sẽ thấy mỉm cười.",
+  "Hy vọng rằng đêm trung thu này, bạn Trần Bình sẽ thấy mọi điều trở nên dịu dàng hơn.",
+  "Chúc bạn Trần Bình tìm thấy sự bình yên trong từng khoảnh khắc, dù là nhỏ bé nhất.",
+  "Ánh trăng hôm nay thật sáng, mong rằng nụ cười của bạn Trần Bình cũng luôn rạng rỡ như thế.",
+  "Trung thu là mùa của sẻ chia, chúc bạn Trần Bình nhận được thật nhiều điều tốt đẹp.",
+  "Chúc bạn Trần Bình có một trái tim ấm áp để luôn thấy cuộc sống này dễ thương hơn.",
+  "Mong rằng những ước nguyện bạn Trần Bình thả vào đêm trung thu này sẽ sớm trở thành hiện thực.",
+  "Chúc bạn Trần Bình có đủ an nhiên để sống hết mình, và đủ niềm vui để mỗi ngày đều ý nghĩa.",
+  "Trung thu này, mong bạn Trần Bình sẽ cảm nhận được sự bình dị mà hạnh phúc từ những điều nhỏ bé.",
+  "Chúc bạn Trần Bình một đêm ngắm trăng thật đẹp, để tâm hồn được lấp đầy sự dịu dàng.",
+  "Mong bạn Trần Bình luôn có một vòng tròn bình yên quanh mình, như vầng trăng đêm nay.",
+  "Chúc bạn Trần Bình giữ mãi sự hồn nhiên, dù thời gian có trôi đi thế nào.",
+  "Mong rằng mỗi trung thu về, bạn Trần Bình sẽ vẫn luôn mỉm cười với ánh trăng, như hôm nay."
+];
+
+function checkOrientation() {
+  if(window.innerWidth < window.innerHeight){
+    rotateOverlay.style.display = "flex";
+    startBtn.style.display = "none";
+  } else {
+    rotateOverlay.style.display = "none";
+    startBtn.style.display = "block";
+  }
+}
+window.addEventListener("resize", checkOrientation);
+checkOrientation();
+
+startBtn.addEventListener("click", () => {
+  bgm.currentTime = 0;
+  bgm.play();
+  startBtn.style.display = "none";
+  createStars(300);
+
+  for(let i=0;i<40;i++){
+    setTimeout(createLantern,i*800);
+  }
+  setInterval(createLantern,1000);
+  autoReplayMusic();
+});
+
+function autoReplayMusic(){
+  setInterval(()=>{
+    bgm.currentTime = 0;
+    bgm.play();
+  },28000);
+}
+
+function createStars(count){
+  const starsContainer = document.getElementById("stars");
+  for(let i=0;i<count;i++){
+    let star = document.createElement("div");
+    star.className="star";
+    const size=Math.random()*2+1;
+    star.style.width=star.style.height=size+"px";
+    star.style.top=Math.random()*window.innerHeight+"px";
+    star.style.left=Math.random()*window.innerWidth+"px";
+    star.style.animationDuration=(Math.random()*2+1)+"s";
+    starsContainer.appendChild(star);
+  }
+}
+
+// Click ngoài đèn trời để ẩn lời chúc
+document.body.addEventListener("click",(e)=>{
+  if(!e.target.classList.contains("lantern")){
+    messageBox.style.display="none";
+  }
+});
+
+// Tạo đèn trời bay tản ngẫu nhiên, bay lâu, chỉ biến mất gần ra khỏi màn hình
+function createLantern(){
+  const lantern=document.createElement("div");
+  lantern.className="lantern";
+
+  const startX=-150 + Math.random()*200;
+  const startY=window.innerHeight + 50;
+  lantern.style.left=startX+"px";
+  lantern.style.top=startY+"px";
+  lantern.style.opacity=0;
+  lantern.style.transform="scale(1)";
+  lanternsContainer.appendChild(lantern);
+
+  let fadeIn=setInterval(()=>{
+    let op=parseFloat(lantern.style.opacity);
+    if(op<0.8) lantern.style.opacity=(op+0.05).toFixed(2);
+    else clearInterval(fadeIn);
+  },50);
+
+  const startTime=performance.now();
+  const baseDuration=30000; // bay lâu hơn
+  const randomExtra=Math.random()*10000;
+  const extraDelay=7000; 
+  const duration=baseDuration + randomExtra + extraDelay;
+
+  const targetX=Math.random()*(window.innerWidth-120);
+  const targetY=Math.random()*(window.innerHeight/2);
+
+  function animate(time){
+    const elapsed=time-startTime;
+    let progress=elapsed/duration;
+    if(progress>1) progress=1;
+
+    // bay tản ngẫu nhiên
+    const x=startX + (targetX-startX)*progress + Math.sin(progress*10)*50;
+    const y=startY + (targetY-startY)*progress + Math.sin(progress*7)*30;
+    lantern.style.left=x+"px";
+    lantern.style.top=y+"px";
+
+    // Chỉ thu nhỏ & mờ khi progress > 0.95 (gần ra khỏi màn hình)
+    if(progress>0.95){
+      const p=(progress-0.95)/0.05;
+      lantern.style.opacity=(0.8*(1-p)).toFixed(2);
+      const scale=1-0.7*p;
+      lantern.style.transform=`scale(${scale})`;
+    }
+
+    if(progress<1) requestAnimationFrame(animate);
+    else lantern.remove();
+  }
+  requestAnimationFrame(animate);
+
+  lantern.addEventListener("click",(e)=>{
+    e.stopPropagation();
+    const randomWish=wishes[Math.floor(Math.random()*wishes.length)];
+    messageBox.innerText=randomWish;
+    messageBox.style.display="block";
+  });
+}
+</script>
+</body>
+</html>
